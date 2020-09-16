@@ -1,11 +1,16 @@
 #include "Common.h"
 
-DEFINE_UI_PARAMS(stopDist, Zone size - stops , DCTLUI_SLIDER_FLOAT, 1.0, 0.0, 5.0, 0.1)
 DEFINE_UI_PARAMS(target, Exposure target, DCTLUI_SLIDER_FLOAT, 0.18, 0.0, 1.0, 0.05)
+DEFINE_UI_PARAMS(showLegend, Show legend, DCTLUI_CHECK_BOX, 1)
 
 __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B)
 {
-	const float3 zonem1 = make_float3(0.05, 0.05, 0.2);
+	float2 uv = make_float2(
+		float(p_X) / float(p_Width),
+		float(p_Y) / float(p_Height)
+	);
+
+	const float3 zonem1 = make_float3(0.01, 0.05, 0.2);
 	const float3 zone0 = make_float3(0.05, 0.05, 0.5);
 	const float3 zone1 = make_float3(0.2, 0.05, 0.5);
 	const float3 zone2 = make_float3(0.3, 0.1, 0.5);
@@ -16,11 +21,25 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p
 	const float3 zone7 = make_float3(0.8, 0.25, 0.01);
 	const float EPS = 0.02f;
 
+	if (uv.y > 0.95 && uv.x > 0.55 && showLegend)
+	{
+		if (uv.y < 0.955) return make_float3(0.0, 0.0, 0.0);
+		if (uv.x < 0.6) return zonem1;
+		if (uv.x < 0.65) return zone0;
+		if (uv.x < 0.7) return zone1;
+		if (uv.x < 0.75) return zone2;
+		if (uv.x < 0.8) return zone3;
+		if (uv.x < 0.85) return zone4;
+		if (uv.x < 0.9) return zone5;
+		if (uv.x < 0.95) return zone6;
+		return zone7;
+	}
+
 	float3 rgb = make_float3(p_R, p_G, p_B);
 
 	float ev100 = _log2f(getLum(rgb) * M_PI);
 	float target_ev = _log2f(getLum(make_float3(target, target, target) * M_PI));
-	int diff = min(4, int(floor((target_ev - ev100) * stopDist)));
+	int diff = min(4, int(floor((target_ev - ev100))));
 
 	switch (diff)
 	{
