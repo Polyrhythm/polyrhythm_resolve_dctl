@@ -1,0 +1,54 @@
+#include "Common.h"
+
+DEFINE_UI_PARAMS(stopDist, Zone size - stops , DCTLUI_SLIDER_FLOAT, 1.0, 0.0, 5.0, 0.1)
+DEFINE_UI_PARAMS(target, Exposure target, DCTLUI_SLIDER_FLOAT, 0.18, 0.0, 1.0, 0.05)
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B)
+{
+	const float3 zonem1 = make_float3(0.05, 0.05, 0.2);
+	const float3 zone0 = make_float3(0.05, 0.05, 0.5);
+	const float3 zone1 = make_float3(0.2, 0.05, 0.5);
+	const float3 zone2 = make_float3(0.3, 0.1, 0.5);
+	const float3 zone3 = make_float3(0.5, 0.5, 0.5);
+	const float3 zone4 = make_float3(0.05, 0.5, 0.01);
+	const float3 zone5 = make_float3(0.5, 0.5, 0.01);
+	const float3 zone6 = make_float3(0.75, 0.5, 0.01);
+	const float3 zone7 = make_float3(0.8, 0.25, 0.01);
+	const float EPS = 0.02f;
+
+	float3 rgb = make_float3(p_R, p_G, p_B);
+
+	float ev100 = _log2f(getLum(rgb) * M_PI);
+	float target_ev = _log2f(getLum(make_float3(target, target, target) * M_PI));
+	int diff = min(4, int(floor((target_ev - ev100) * stopDist)));
+
+	switch (diff)
+	{
+		case 4:
+			return zonem1;
+
+		case 3:
+			return zone0;
+
+		case 2:
+			return zone1;
+
+		case 1:
+			return zone2;
+
+		default:
+			return zone3;
+
+		case -1:
+			return zone4;
+
+		case -2:
+			return zone5;
+
+		case -3:
+			return zone6;
+
+		case -4:
+			return zone7;
+	}
+}
